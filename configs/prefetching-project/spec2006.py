@@ -48,6 +48,27 @@ elif spec_program == "lbm":
         '470.lbm/run/run_base_test_docker.0000/reference.dat'), '0', '1',
         os.path.join(cpu_2006_base_dir,
             '470.lbm/run/run_base_test_docker.0000/100_100_130_cf_a.of')]
+elif spec_program == "sphinx": # TODO: not yet running :(
+    binary = [os.path.join(cpu_2006_base_dir,
+        '482.sphinx3/exe/sphinx_livepretend_base.docker')]
+    sphinx_base_dir = os.path.join(cpu_2006_base_dir,
+        '482.sphinx3/run/run_base_test_docker.0000')
+    input_file = [os.path.join(sphinx_base_dir, 'ctlfile'),
+        sphinx_base_dir + '/',
+        os.path.join(sphinx_base_dir, 'args.an4')]
+elif spec_program == "astar": # TODO: not yet running :(
+    binary = [os.path.join(cpu_2006_base_dir,
+        '473.astar/exe/astar_base.docker')]
+    input_file = [os.path.join(cpu_2006_base_dir,
+        '473.astar/run/run_base_test_docker.0000/lake.cfg')]
+elif spec_program == "libquantum":
+    binary = [os.path.join(cpu_2006_base_dir,
+        '462.libquantum/exe/libquantum_base.docker')]
+    input_file = ['33', '5']
+elif spec_program == "mcf":
+    binary = [os.path.join(cpu_2006_base_dir, '429.mcf/exe/mcf_base.docker')]
+    input_file = [os.path.join(cpu_2006_base_dir,
+        '429.mcf/run/run_base_test_docker.0000/inp.in')]
 else:
     m5.fatal('Given spec program is not supported')
 
