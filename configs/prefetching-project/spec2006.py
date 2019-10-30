@@ -41,6 +41,13 @@ if spec_program == "bzip2" or spec_program == "401":
         '401.bzip2/exe/bzip2_base.docker')]
     input_file = [os.path.join(cpu_2006_base_dir,
         '401.bzip2/run/run_base_test_docker.0000/input.program'), '5']
+elif spec_program == "lbm":
+    binary = [os.path.join(cpu_2006_base_dir,
+        '470.lbm/exe/lbm_base.docker')]
+    input_file = ['20', os.path.join(cpu_2006_base_dir,
+        '470.lbm/run/run_base_test_docker.0000/reference.dat'), '0', '1',
+        os.path.join(cpu_2006_base_dir,
+            '470.lbm/run/run_base_test_docker.0000/100_100_130_cf_a.of')]
 else:
     m5.fatal('Given spec program is not supported')
 
