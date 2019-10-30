@@ -1,0 +1,133 @@
+# import the m5 (gem5) library created when gem5 is built
+import m5
+import os
+# import all of the SimObjects
+from m5.objects import *
+
+# Add the common scripts to our path
+m5.util.addToPath('../../')
+
+# import the caches which we made
+from caches import *
+
+# import the SimpleOpts module
+from common import SimpleOpts
+
+# set default args
+cpu_2006_base_dir = '/speccpu2006-clean/benchspec/CPU2006/'
+default_max_insts = 1000000000 # 1 billion
+
+# Set the usage message to display
+SimpleOpts.add_option('--maxinsts',
+        help="Max instructions to run. Default: %s" % default_max_insts)
+
+SimpleOpts.set_usage("usage: %prog [-maxinsts number] spec_program")
+
+# Finalize the arguments and grab the opts so we can pass it on to our objects
+(opts, args) = SimpleOpts.parse_args()
+
+# Check if there was a binary passed in via the command line and error if
+# there are too many arguments
+if len(args) == 1:
+    spec_program = args[0]
+else:
+    SimpleOpts.print_help()
+    m5.fatal("Expected a spec program to execute as positional argument")
+
+# TODO: add other spec programs
+# TODO: add more than just the first input file?
+if spec_program == "bzip2" or spec_program == "401":
+    binary = [os.path.join(cpu_2006_base_dir,
+        '401.bzip2/exe/bzip2_base.docker')]
+    input_file = [os.path.join(cpu_2006_base_dir,
+        '401.bzip2/run/run_base_test_docker.0000/input.program'), '5']
+else:
+    m5.fatal('Given spec program is not supported')
+
+output_file = 'spec_run.' + spec_program + '.out'
+
+# create the system we are going to simulate
+system = System()
+
+# Set the clock fequency of the system (and all of its children)
+system.clk_domain = SrcClockDomain()
+system.clk_domain.clock = '1.5GHz'
+system.clk_domain.voltage_domain = VoltageDomain()
+
+# Set up the system
+system.mem_mode = 'timing'               # Use timing accesses
+system.mem_ranges = [AddrRange('4GB')] # Create an address range
+
+# Create a simple CPU
+#system.cpu = TimingSimpleCPU()
+system.cpu = MinorCPU()
+
+
+# Create an L1 instruction and data cache
+system.cpu.icache = L1ICache(opts)
+system.cpu.dcache = L1DCache(opts)
+
+# Connect the instruction and data caches to the CPU
+system.cpu.icache.connectCPU(system.cpu)
+system.cpu.dcache.connectCPU(system.cpu)
+
+# Create a memory bus, a coherent crossbar, in this case
+system.l2bus = L2XBar()
+
+# Hook the CPU ports up to the l2bus
+system.cpu.icache.connectBus(system.l2bus)
+system.cpu.dcache.connectBus(system.l2bus)
+
+# Create an L2 cache and connect it to the l2bus
+system.l2cache = L2Cache(opts)
+system.l2cache.connectCPUSideBus(system.l2bus)
+
+# Create a memory bus
+system.membus = SystemXBar()
+
+# Connect the L2 cache to the membus
+system.l2cache.connectMemSideBus(system.membus)
+
+# create the interrupt controller for the CPU
+system.cpu.createInterruptController()
+
+# For x86 only, make sure the interrupts are connected to the memory
+# Note: these are directly connected to the memory bus and are not cached
+if m5.defines.buildEnv['TARGET_ISA'] == "x86":
+    system.cpu.interrupts[0].pio = system.membus.master
+    system.cpu.interrupts[0].int_master = system.membus.slave
+    system.cpu.interrupts[0].int_slave = system.membus.master
+
+# Connect the system up to the membus
+system.system_port = system.membus.slave
+
+# Create a DDR3 memory controller
+system.mem_ctrl = DDR3_1600_8x8()
+system.mem_ctrl.range = system.mem_ranges[0]
+system.mem_ctrl.port = system.membus.master
+
+
+
+
+# Create a process for a simple "Hello World" application
+process = Process()
+system.cpu.process = process
+system.cpu.max_insts_any_thread = opts.maxinsts or default_max_insts
+
+# Set the command
+# cmd is a list which begins with the executable (like argv)
+process.cmd = binary + input_file
+process.output = output_file
+# Set the cpu to use the process as its workload and create thread contexts
+system.cpu.workload = process
+system.cpu.createThreads()
+
+# set up the root SimObject and start the simulation
+root = Root(full_system = False, system = system)
+# instantiate all of the objects we've created above
+m5.instantiate()
+
+print("Beginning simulation!")
+exit_event = m5.simulate()
+print('Exiting @ tick %i because %s', m5.curTick(), exit_event.getCause())
+
