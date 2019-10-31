@@ -69,6 +69,26 @@ elif spec_program == "mcf":
     binary = [os.path.join(cpu_2006_base_dir, '429.mcf/exe/mcf_base.docker')]
     input_file = [os.path.join(cpu_2006_base_dir,
         '429.mcf/run/run_base_test_docker.0000/inp.in')]
+elif spec_program == 'sjeng':
+    binary = [os.path.join(cpu_2006_base_dir, '458.sjeng','exe','sjeng_base.amd64-m64-gcc41-nn')]
+    input_file = [os.path.join(cpu_2006_base_dir,'458.sjeng','run','run_base_test_amd64-m64-gcc41-nn.0000','test.txt')]
+elif spec_program == 'povray':
+    binary = [os.path.join(cpu_2006_base_dir, '453.povray','exe','povray_base.amd64-m64-gcc41-nn')]
+    input_file = [os.path.join(cpu_2006_base_dir,'453.povray','run','run_base_test_amd64-m64-gcc41-nn.0000','SPEC-benchmark-test.pov')]
+    input_file += [os.path.join(cpu_2006_base_dir,'453.povray','run','run_base_test_amd64-m64-gcc41-nn.0000','SPEC-benchmark-test.ini')]
+elif spec_program == 'h264ref':
+    binary = [os.path.join(cpu_2006_base_dir, '464.h264ref','exe','h264ref_base.amd64-m64-gcc41-nn')]
+    #input_file = ['-f ' + os.path.join(cpu_2006_base_dir, '464.h264ref','run','run_base_test_amd64-m64-gcc41-nn.0000','foreman_test_encoder_baseline.cfg')]
+    input_file = []
+elif spec_program =='soplex':
+    binary = [os.path.join(cpu_2006_base_dir, '450.soplex', 'exe', 'soplex_base.amd64-m64-gcc41-nn')]
+    #input_file = ['-m10000']
+    #input_file = [os.path.join(cpu_2006_base_dir,'450.soplex','run','run_base_test_amd64-m64-gcc41-nn.0000','test.mps')]
+    input_file = ['-m10000', os.path.join(cpu_2006_base_dir,'450.soplex','run','run_base_test_amd64-m64-gcc41-nn.0000','test.mps')]
+elif spec_program == 'dealII':
+    binary = [os.path.join(cpu_2006_base_dir,'447.dealII','exe','dealII_base.amd64-m64-gcc41-nn')]
+    input_file = ['8']
+
 else:
     m5.fatal('Given spec program is not supported')
 
