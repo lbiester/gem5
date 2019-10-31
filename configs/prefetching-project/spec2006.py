@@ -15,13 +15,14 @@ from common import SimpleOpts
 
 # set default args
 cpu_2006_base_dir = '/speccpu2006-clean/benchspec/CPU2006/'
-default_max_insts = 1000000000 # 1 billion
+#default_max_insts = 1000000000 # 1 billion
+default_max_insts = 100000000 # 100 million
 
 # Set the usage message to display
 SimpleOpts.add_option('--maxinsts',
         help="Max instructions to run. Default: %s" % default_max_insts)
 
-SimpleOpts.set_usage("usage: %prog [-maxinsts number] spec_program")
+SimpleOpts.set_usage("usage: %prog [--maxinsts number] spec_program")
 
 # Finalize the arguments and grab the opts so we can pass it on to our objects
 (opts, args) = SimpleOpts.parse_args()
@@ -48,6 +49,31 @@ elif spec_program == "lbm":
         '470.lbm/run/run_base_test_docker.0000/reference.dat'), '0', '1',
         os.path.join(cpu_2006_base_dir,
             '470.lbm/run/run_base_test_docker.0000/100_100_130_cf_a.of')]
+elif spec_program == "gobmk":
+    binary = [os.path.join(cpu_2006_base_dir, 
+        '445.gobmk/exe/gobmk_base.docker')]
+    input_file = ['--quiet', '--mode', 'gtp', '<', os.path.join(cpu_2006_base_dir, 
+        '445.gobmk/run/run_base_test_docker.0000/capture.tst')]
+elif spec_program == "hmmer":
+    binary = [os.path.join(cpu_2006_base_dir,
+        '456.hmmer/exe/hmmer_base.docker')]
+    input_file = ['--fixed', '0', '--mean', '325', '--num', '45000', '--sd', '200', '--seed', '0', os.path.join(cpu_2006_base_dir,
+        '456.hmmer/run/run_base_test_docker.0000/bombesin.hmm')]
+elif spec_program == "milc":
+    binary = [os.path.join(cpu_2006_base_dir,
+        '433.milc/exe/milc_base.docker')]
+    input_file = ['<', os.path.join(cpu_2006_base_dir, 
+        '433.milc/run/run_base_test_docker.0000/su3imp.in')]
+elif spec_program == "namd":
+    binary = [os.path.join(cpu_2006_base_dir,
+        '444.namd/exe/namd_base.docker')]
+    input_file = ['--input', os.path.join(cpu_2006_base_dir, 
+        '444.namd/run/run_base_test_docker.0000/namd.input'), '--iterations', '1', '--output', 
+        os.path.join(cpu_2006_base_dir, '444.namd/run/run_base_test_docker.0000/namd.out')]
+elif spec_program == "omnetpp":
+    binary = [os.path.join(cpu_2006_base_dir,
+        '471.omnetpp/exe/omnetpp_base.docker')]
+    input_file = [os.path.join(cpu_2006_base_dir, '471.omnetpp/run/run_base_test_docker.0000/omnetpp.ini')]
 else:
     m5.fatal('Given spec program is not supported')
 
