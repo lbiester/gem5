@@ -513,3 +513,10 @@ class PIFPrefetcher(QueuedPrefetcher):
         if not isinstance(simObj, SimObject):
             raise TypeError("argument must be of SimObject type")
         self.addEvent(HWPProbeEventRetiredInsts(self, simObj,"RetiredInstsPC"))
+
+
+class LSTMNaivePrefetcher(QueuedPrefetcher):
+    type = 'LSTMNaivePrefetcher'
+    cxx_class = 'LSTMNaivePrefetcher'
+    cxx_header = 'mem/cache/prefetch/lstm_naive.hh'
+

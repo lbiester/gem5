@@ -1,0 +1,41 @@
+Redirecting Options
+  All Streams to console..........On   and file SPEC-benchmark.log
+  Debug Stream to console.........Off
+  Fatal Stream to console.........On 
+  Render Stream to console........On 
+  Statistics Stream to console....On 
+  Warning Stream to console.......Off
+Parsing Options
+  Input file: /speccpu2006-clean/benchspec/CPU2006/453.povray/run/run_base_test_
+amd64-m64-gcc41-nn.0000/SPEC-benchmark-test.pov (compatible to version 3.50)
+  Remove bounds........Off
+  Split unions.........Off
+  Library paths:
+Output Options
+  Image resolution 50 by 50 (rows 1 to 50, columns 1 to 50).
+  Graphic display......Off
+  Mosaic preview.......Off
+  CPU usage histogram..Off
+  Continued trace......Off
+Tracing Options
+  Quality:  9
+  Bounding boxes.......On   Bounding threshold: 1
+  Light Buffer.........On 
+  Vista Buffer.........On   Draw Vista Buffer....Off
+  Antialiasing.........On  (Method 1, Threshold 0.300, Depth 3, Jitter Off)
+  Clock value:    0.000  (Animation off)
+File: /speccpu2006-clean/benchspec/CPU2006/453.povray/run/run_base_test_amd64-m6
+4-gcc41-nn.0000/shapes.inc  Line: 17
+Possible Parse Error: Could not find file 'consts.inc'
+File: /speccpu2006-clean/benchspec/CPU2006/453.povray/run/run_base_test_amd64-m6
+4-gcc41-nn.0000/shapes.inc  Line: 17
+File Context (5 lines):
+#include "/speccpu2006-clean/benchspec/CPU2006/453.povray/run/run_base_test_amd6
+4-m64-gcc41-nn.0000/shapes_old.inc"
+#include "consts.inc"
+Parse Error: Cannot open include file consts.inc.
+File: /speccpu2006-clean/benchspec/CPU2006/453.povray/run/run_base_test_amd64-m6
+4-gcc41-nn.0000/shapes.inc  Line: 17
+Parse Warning: Check that the file is in a directory specifed with a +L switch
+ or 'Library_Path=' .INI item. Standard include files are in the include
+ directory or folder. Please read your documentation carefully.

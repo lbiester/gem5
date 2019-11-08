@@ -35,7 +35,6 @@ else:
     SimpleOpts.print_help()
     m5.fatal("Expected a spec program to execute as positional argument")
 
-# TODO: add other spec programs
 # TODO: add more than just the first input file?
 if spec_program == "bzip2" or spec_program == "401":
     binary = [os.path.join(cpu_2006_base_dir,
@@ -155,6 +154,9 @@ system.cpu.dcache.connectBus(system.l2bus)
 # Create an L2 cache and connect it to the l2bus
 system.l2cache = L2Cache(opts)
 system.l2cache.connectCPUSideBus(system.l2bus)
+
+# Use LSTM Naive Prefetcher 
+system.l2cache.prefetcher = LSTMNaivePrefetcher()
 
 # Create a memory bus
 system.membus = SystemXBar()
