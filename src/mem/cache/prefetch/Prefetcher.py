@@ -515,8 +515,8 @@ class PIFPrefetcher(QueuedPrefetcher):
         self.addEvent(HWPProbeEventRetiredInsts(self, simObj,"RetiredInstsPC"))
 
 
-class LSTMNaivePrefetcher(QueuedPrefetcher):
-    type = 'LSTMNaivePrefetcher'
-    cxx_class = 'LSTMNaivePrefetcher'
-    cxx_header = 'mem/cache/prefetch/lstm_naive.hh'
+class RLNaivePrefetcher(QueuedPrefetcher):
+    type = 'RLNaivePrefetcher'
+    cxx_class = 'RLNaivePrefetcher'
+    cxx_header = 'mem/cache/prefetch/rl_naive.hh'
 

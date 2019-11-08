@@ -156,7 +156,7 @@ system.l2cache = L2Cache(opts)
 system.l2cache.connectCPUSideBus(system.l2bus)
 
 # Use LSTM Naive Prefetcher 
-system.l2cache.prefetcher = LSTMNaivePrefetcher()
+system.l2cache.prefetcher = RLNaivePrefetcher()
 
 # Create a memory bus
 system.membus = SystemXBar()
