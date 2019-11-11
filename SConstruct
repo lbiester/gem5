@@ -391,6 +391,7 @@ if main['GCC'] or main['CLANG']:
                          '-Wno-error=deprecated-declarations',
                          '-Wno-error=deprecated',
                         ])
+    main.Append(LIBS=['curl'])
 else:
     print(termcap.Yellow + termcap.Bold + 'Error' + termcap.Normal, end=' ')
     print("Don't know what compiler options to use for your compiler.")

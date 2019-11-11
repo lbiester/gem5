@@ -1,0 +1,25 @@
+import http.server
+import socketserver
+
+value = 0
+
+class TorchHandler(http.server.BaseHTTPRequestHandler):
+    def do_GET(self):
+        # sketchy use of global in python but I can't think of another simple
+        # way to do this
+        # the network itself could be stored in a global variable
+        global value
+        value += 1
+
+        # this library is extrordinarily annoying and won't write back a number
+        # without this mess...
+        self.wfile.write(b"\n")
+        self.wfile.write(bytes(str(value), 'utf-8'))
+
+PORT = 8080
+Handler = TorchHandler
+
+with socketserver.TCPServer(("", PORT), Handler) as httpd:
+    print("serving at port", PORT)
+    httpd.serve_forever()
+
