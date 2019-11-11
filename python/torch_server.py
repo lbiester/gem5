@@ -4,7 +4,16 @@ import socketserver
 value = 0
 
 class TorchHandler(http.server.BaseHTTPRequestHandler):
-    def do_GET(self):
+    def do_POST(self):
+        # get data from request
+        # if we need more than super basic data (like address), we can consider
+        # using JSON
+        length = int(self.headers.get('content-length'))
+        field_data = self.rfile.read(length)
+        address = int(field_data)
+        print("Address sent:", address)
+
+
         # sketchy use of global in python but I can't think of another simple
         # way to do this
         # the network itself could be stored in a global variable
@@ -22,4 +31,3 @@ Handler = TorchHandler
 with socketserver.TCPServer(("", PORT), Handler) as httpd:
     print("serving at port", PORT)
     httpd.serve_forever()
-
