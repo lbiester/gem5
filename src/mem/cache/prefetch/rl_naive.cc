@@ -13,6 +13,14 @@ RLNaivePrefetcher::RLNaivePrefetcher(const RLNaivePrefetcherParams *p)
 	std::cout << "Prefetching!";    
 }
 
+
+size_t write_data(void *contents, size_t size, size_t nmemb, void *userp)
+{
+    ((std::string*)userp)->append((char*)contents, size * nmemb);
+    return size * nmemb;
+}
+
+
 void
 RLNaivePrefetcher::calculatePrefetch(const PrefetchInfo &pfi,
 		std::vector<AddrPriority> &addresses)
@@ -25,7 +33,7 @@ RLNaivePrefetcher::calculatePrefetch(const PrefetchInfo &pfi,
 
 	CURL *curl;
 	CURLcode res;
-
+    std::string readBuffer;
 
      /* In windows, this will init the winsock stuff */
     curl_global_init(CURL_GLOBAL_ALL);
@@ -37,14 +45,19 @@ RLNaivePrefetcher::calculatePrefetch(const PrefetchInfo &pfi,
        just as well be a https:// URL if that is what should receive the
        data. */
         curl_easy_setopt(curl, CURLOPT_URL, "localhost:8080");
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
         /* Now specify the POST data */
 //        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, "name=daniel&project=curl");
 
         /* Perform the request, res will get the return code */
         res = curl_easy_perform(curl);
         /* Check for errors */
-        if(res != CURLE_OK)
+        if(res != CURLE_OK) {
             fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
+        }
+
+        printf("Output: %s\n", readBuffer.c_str());
 
         /* always cleanup */
         curl_easy_cleanup(curl);
@@ -58,5 +71,6 @@ RLNaivePrefetcherParams::create()
 {
 	return new RLNaivePrefetcher(this);
 }
+
 
 
