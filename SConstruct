@@ -372,6 +372,7 @@ if main['GCC'] or main['CLANG']:
                          '-Wno-sign-compare', '-Wno-unused-parameter'])
     # We always compile using C++11
     main.Append(CXXFLAGS=['-std=c++11'])
+    main.Append(CXXFLAGS=['GLIBCXX_USE_CXX11_ABI=0'])
     if sys.platform.startswith('freebsd'):
         main.Append(CCFLAGS=['-I/usr/local/include'])
         main.Append(CXXFLAGS=['-I/usr/local/include'])
@@ -387,10 +388,10 @@ if main['GCC'] or main['CLANG']:
 
     # Treat warnings as errors but white list some warnings that we
     # want to allow (e.g., deprecation warnings).
-    main.Append(CCFLAGS=['-Werror',
-                         '-Wno-error=deprecated-declarations',
-                         '-Wno-error=deprecated',
-                        ])
+    #main.Append(CCFLAGS=['-Werror',
+    #                     '-Wno-error=deprecated-declarations',
+    #                     '-Wno-error=deprecated',
+    #                    ])
 else:
     print(termcap.Yellow + termcap.Bold + 'Error' + termcap.Normal, end=' ')
     print("Don't know what compiler options to use for your compiler.")

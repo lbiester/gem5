@@ -59,6 +59,7 @@
 #include "debug/HWPrefetch.hh"
 #include "mem/cache/replacement_policies/base.hh"
 #include "params/StridePrefetcher.hh"
+#include <torch/torch.h>
 
 StridePrefetcher::StrideEntry::StrideEntry()
 {

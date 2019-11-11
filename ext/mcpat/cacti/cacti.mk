@@ -20,7 +20,7 @@ else
 endif
 
 #CXXFLAGS = -Wall -Wno-unknown-pragmas -Winline $(DBG) $(OPT) 
-CXXFLAGS = -Wno-unknown-pragmas $(DBG) $(OPT) 
+#CXXFLAGS = -Wno-unknown-pragmas $(DBG) $(OPT) 
 CXX = g++ -m32
 CC  = gcc -m32
 
