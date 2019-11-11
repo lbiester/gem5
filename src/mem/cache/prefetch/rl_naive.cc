@@ -4,8 +4,9 @@
 #include "debug/HWPrefetch.hh"
 #include "params/RLNaivePrefetcher.hh"
 
-#include <iostream>
 #include <curl/curl.h>
+#include <iostream>
+#include <sstream>
 
 RLNaivePrefetcher::RLNaivePrefetcher(const RLNaivePrefetcherParams *p) 
     : QueuedPrefetcher(p)
@@ -34,6 +35,8 @@ RLNaivePrefetcher::calculatePrefetch(const PrefetchInfo &pfi,
 	CURL *curl;
 	CURLcode res;
     std::string readBuffer;
+    std::ostringstream addrStr;
+    addrStr << pfi.getAddr();
 
      /* In windows, this will init the winsock stuff */
     curl_global_init(CURL_GLOBAL_ALL);
@@ -47,8 +50,12 @@ RLNaivePrefetcher::calculatePrefetch(const PrefetchInfo &pfi,
         curl_easy_setopt(curl, CURLOPT_URL, "localhost:8080");
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
+        curl_easy_setopt(curl, CURLOPT_POST, 1);
+
+        std::string strData;
+        strData = "address=" + addrStr.str();
         /* Now specify the POST data */
-//        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, "name=daniel&project=curl");
+        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, strData.c_str());
 
         /* Perform the request, res will get the return code */
         res = curl_easy_perform(curl);
@@ -71,6 +78,3 @@ RLNaivePrefetcherParams::create()
 {
 	return new RLNaivePrefetcher(this);
 }
-
-
-

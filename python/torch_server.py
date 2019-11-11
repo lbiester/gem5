@@ -1,5 +1,6 @@
 import http.server
 import socketserver
+from urllib.parse import parse_qs
 
 value = 0
 
@@ -8,9 +9,10 @@ class TorchHandler(http.server.BaseHTTPRequestHandler):
         # get data from request
         # if we need more than super basic data (like address), we can consider
         # using JSON
-        length = int(self.headers.get('content-length'))
+        length = int(self.headers.get("content-length"))
         field_data = self.rfile.read(length)
-        address = int(field_data)
+        field_dict = parse_qs(field_data.decode('ascii'))
+        address = int(field_dict["address"][0])
         print("Address sent:", address)
 
 
@@ -23,7 +25,7 @@ class TorchHandler(http.server.BaseHTTPRequestHandler):
         # this library is extrordinarily annoying and won't write back a number
         # without this mess...
         self.wfile.write(b"\n")
-        self.wfile.write(bytes(str(value), 'utf-8'))
+        self.wfile.write(bytes(str(value), "utf-8"))
 
 PORT = 8080
 Handler = TorchHandler

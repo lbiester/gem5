@@ -16,10 +16,6 @@ class RLNaivePrefetcher : public QueuedPrefetcher
 		
 		void calculatePrefetch(const PrefetchInfo &pfi,
 					std::vector<AddrPriority> &addresses) override;
-
-        size_t WriteCallback(void *contents, size_t size, size_t nmemb, void *userp);
 };
 
 #endif //__MEM_CACHE_PREFETCH_RLNAIVE_HH__
-
-
