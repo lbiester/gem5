@@ -4,6 +4,7 @@
 #include "debug/HWPrefetch.hh"
 #include "params/RLNaivePrefetcher.hh"
 
+#include <boost/algorithm/string.hpp>
 #include <curl/curl.h>
 #include <iostream>
 #include <sstream>
@@ -64,7 +65,19 @@ RLNaivePrefetcher::calculatePrefetch(const PrefetchInfo &pfi,
             fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
         }
 
-        printf("Output: %s\n", readBuffer.c_str());
+        // the server returns a string of addresses split by ','
+        // we need to split the string and convert the addresses to the Addr type
+        std::vector<std::string> splitAddrStr;
+        boost::split(splitAddrStr, readBuffer, boost::is_any_of(","));
+        for (int i = 0; i < splitAddrStr.size(); i++) {
+            Addr returnedAddress = std::stoul(splitAddrStr[i]);
+            addresses.push_back(AddrPriority(returnedAddress, 0));
+        }
+
+        // confirm that it worked (we can get rid of this)
+        std::cout << "* size of the vector: " << splitAddrStr.size() << "\n";
+        std::cout << splitAddrStr[splitAddrStr.size() - 1] << "\n";
+
 
         /* always cleanup */
         curl_easy_cleanup(curl);
@@ -78,3 +91,4 @@ RLNaivePrefetcherParams::create()
 {
 	return new RLNaivePrefetcher(this);
 }
+
