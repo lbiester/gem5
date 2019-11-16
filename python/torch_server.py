@@ -14,7 +14,9 @@ class TorchHandler(http.server.BaseHTTPRequestHandler):
         field_data = self.rfile.read(length)
         field_dict = parse_qs(field_data.decode('ascii'))
         address = int(field_dict["address"][0])
+        pc = int(field_dict["pc"][0])
         print("Address sent:", address)
+        print("PC sent:", pc)
         
         global addresses_sent
         addresses_sent.append(str(address))

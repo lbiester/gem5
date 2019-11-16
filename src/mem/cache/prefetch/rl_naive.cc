@@ -38,6 +38,9 @@ RLNaivePrefetcher::calculatePrefetch(const PrefetchInfo &pfi,
     std::string readBuffer;
     std::ostringstream addrStr;
     addrStr << pfi.getAddr();
+    std::ostringstream pcStr;
+    pcStr << pfi.getPC();
+
 
      /* In windows, this will init the winsock stuff */
     curl_global_init(CURL_GLOBAL_ALL);
@@ -55,6 +58,7 @@ RLNaivePrefetcher::calculatePrefetch(const PrefetchInfo &pfi,
 
         std::string strData;
         strData = "address=" + addrStr.str();
+	strData += "&pc=" + pcStr.str();
         /* Now specify the POST data */
         curl_easy_setopt(curl, CURLOPT_POSTFIELDS, strData.c_str());
 
