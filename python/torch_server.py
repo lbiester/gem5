@@ -1,11 +1,29 @@
 import http.server
 import socketserver
+import sys
 from urllib.parse import parse_qs
 
 value = 0
 addresses_sent = []
+pcs_sent = []
+
+OUTFILE_ADDR = "spec_stats/address_pc_experiment/address.out"
+OUTFILE_PC = "spec_stats/address_pc_experiment/pc.out"
 
 class TorchHandler(http.server.BaseHTTPRequestHandler):
+    def do_GET(self):
+        # this is to avoid writing to a file each time... we can make a get
+        # request to write back all of the PCs/Addresses sent to a file
+        if len(sys.argv) > 1:
+            global addresses_sent
+            global pcs_sent
+            with open(OUTFILE_ADDR + "." + sys.argv[1], "w") as f:
+                for address in addresses_sent:
+                    f.write(str(address) + "\n")
+            with open(OUTFILE_PC + "." + sys.argv[1], "w") as f:
+                for pc in pcs_sent:
+                    f.write(str(pc) + "\n")
+
     def do_POST(self):
         # get data from request
         # if we need more than super basic data (like address), we can consider
@@ -15,11 +33,11 @@ class TorchHandler(http.server.BaseHTTPRequestHandler):
         field_dict = parse_qs(field_data.decode('ascii'))
         address = int(field_dict["address"][0])
         pc = int(field_dict["pc"][0])
-        print("Address sent:", address)
-        print("PC sent:", pc)
         
         global addresses_sent
         addresses_sent.append(str(address))
+        global pcs_sent
+        pcs_sent.append(str(pc))
 
 
         # sketchy use of global in python but I can't think of another simple
