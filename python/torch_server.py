@@ -48,9 +48,10 @@ class TorchHandler(http.server.BaseHTTPRequestHandler):
 
         # this library is extrordinarily annoying and won't write back a number
         # without this mess...
-        
+
+        addresses_test = ["1234", "5678"]
         self.wfile.write(b"\n")
-        self.wfile.write(bytes(",".join(addresses_sent), "utf-8"))
+        self.wfile.write(bytes(",".join(addresses_test), "utf-8"))
 
 PORT = 8080
 Handler = TorchHandler

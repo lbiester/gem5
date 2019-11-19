@@ -12,7 +12,7 @@
 RLNaivePrefetcher::RLNaivePrefetcher(const RLNaivePrefetcherParams *p) 
     : QueuedPrefetcher(p)
 {
-	std::cout << "Prefetching!";    
+	std::cout << "Prefetching!";
 }
 
 
@@ -31,7 +31,7 @@ RLNaivePrefetcher::calculatePrefetch(const PrefetchInfo &pfi,
 		DPRINTF(HWPrefetch, "Ignoring request with no PC\n");
 		return;
 	}
-	std::cout << "Prefetching!\n";
+	// std::cout << "Prefetching!\n";
 
 	CURL *curl;
 	CURLcode res;
@@ -79,8 +79,8 @@ RLNaivePrefetcher::calculatePrefetch(const PrefetchInfo &pfi,
         }
 
         // confirm that it worked (we can get rid of this)
-        std::cout << "* size of the vector: " << splitAddrStr.size() << "\n";
-        std::cout << splitAddrStr[splitAddrStr.size() - 1] << "\n";
+        // std::cout << "* size of the vector: " << splitAddrStr.size() << "\n";
+        // std::cout << splitAddrStr[splitAddrStr.size() - 1] << "\n";
 
 
         /* always cleanup */
