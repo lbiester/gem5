@@ -1,8 +1,13 @@
 # import the m5 (gem5) library created when gem5 is built
 import m5
 import os
+import requests
 # import all of the SimObjects
 from m5.objects import *
+
+# Clear python server
+# to make this work run apt-get install python-requests
+requests.post("http://localhost:8080", data={"reset_state": "true"})
 
 # Add the common scripts to our path
 m5.util.addToPath('../../')

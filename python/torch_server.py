@@ -1,6 +1,7 @@
 import http.server
 import socketserver
 import sys
+from io import BytesIO
 from urllib.parse import parse_qs
 
 value = 0
@@ -25,33 +26,48 @@ class TorchHandler(http.server.BaseHTTPRequestHandler):
                     f.write(str(pc) + "\n")
 
     def do_POST(self):
+        # global variables
+        global value
+        global addresses_sent
+        global pcs_sent
+
+        self.send_response(200)
+        self.end_headers()
         # get data from request
         # if we need more than super basic data (like address), we can consider
         # using JSON
         length = int(self.headers.get("content-length"))
         field_data = self.rfile.read(length)
         field_dict = parse_qs(field_data.decode('ascii'))
+
+        if "reset_state" in field_dict:
+            # special case: the config file will initially call this with
+            # rest_state to reset the server state between runs
+            value = 0
+            addresses_sent = []
+            pcs_sent = []
+            print("resetting server state")
+            return
         address = int(field_dict["address"][0])
         pc = int(field_dict["pc"][0])
-        
-        global addresses_sent
+
         addresses_sent.append(str(address))
-        global pcs_sent
         pcs_sent.append(str(pc))
 
 
         # sketchy use of global in python but I can't think of another simple
         # way to do this
         # the network itself could be stored in a global variable
-        global value
         value += 1
 
         # this library is extrordinarily annoying and won't write back a number
         # without this mess...
 
         addresses_test = ["1234", "5678"]
-        self.wfile.write(b"\n")
-        self.wfile.write(bytes(",".join(addresses_test), "utf-8"))
+        response = BytesIO()
+        response.write(bytes(",".join(addresses_test), "utf-8"))
+        self.wfile.write(response.getvalue())
+
 
 PORT = 8080
 Handler = TorchHandler
