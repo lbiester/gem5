@@ -1,11 +1,16 @@
 import random
+import sys
+
 import numpy as np
 from scipy.stats import bernoulli
 
 
 class QLearningPrefetcher:
-    def __init__(self, state_vocab, action_vocab, epsilon, use_window=128, learning_rate=0.1, discount=0.9,
+    def __init__(self, state_vocab, action_vocab, epsilon=0.1, use_window=128, learning_rate=0.1, discount=0.9,
                  table_based=True):
+        if sys.version_info[0] != 3:
+            raise Exception("Q Learning Prefetcher must be used with python 3!")
+
         # vocabs are list of possible state/action options
         # states are (address, pc) tuples, actions are addresses to prefetch
         self.state_vocab = state_vocab
@@ -35,6 +40,7 @@ class QLearningPrefetcher:
             if explore:
                 action = random.choice(np.arange(len(action_rewards)))
             else:
+                # TODO: it seems like this could end up in an infinite loop if all of the max actions are chosen already
                 action_opts = [i for i, val in enumerate(action_rewards) if val == max(action_rewards)]
                 action = random.choice(action_opts)
             address = self.action_vocab[action]
@@ -45,6 +51,7 @@ class QLearningPrefetcher:
         return address
 
     def update_estimate(self, state, action, next_state, next_action, reward):
+        print(reward)
         state_idx = self.state_dict[state]
         action_idx = self.action_dict[action]
 
@@ -62,7 +69,7 @@ class QLearningPrefetcher:
         if stale_item is not None:
             if stale_item.needs_reward:
                 next_item = self.choice_history_buffer.get_next_pbi(stale_item)
-                self.update_estimate(stale_item.state, stale_item.action, next_item.state, next_item.action, -1)
+                self.update_estimate(stale_item.state, stale_item.address, next_item.state, next_item.address, -1)
 
 
         # perform positive reward when correct item is prefetched
@@ -70,9 +77,9 @@ class QLearningPrefetcher:
         if causal_prefetch_item is not None:
             delay = self.choice_history_buffer.step - causal_prefetch_item.step
             reward = (self.use_window + 1 - delay) / self.use_window
-            next_item = self.choice_history_buffer.get_causal_prefetch_item(causal_prefetch_item)
-            self.update_estimate(causal_prefetch_item.state, causal_prefetch_item.action, next_item.state,
-                                 next_item.action, reward)
+            next_item = self.choice_history_buffer.get_next_pbi(causal_prefetch_item)
+            self.update_estimate(causal_prefetch_item.state, causal_prefetch_item.address, next_item.state,
+                                 next_item.address, reward)
             causal_prefetch_item.reward()
 
         self.choice_history_buffer.remove_stale_item()
@@ -105,7 +112,7 @@ class PrefetchBuffer:
         return None
 
     def get_next_pbi(self, pbi):
-        return self.buffer[pbi.state - self.step + 1]
+        return self.buffer[pbi.step - self.step + 1]
 
     def __contains__(self, address):
         return address in [pbi.address for pbi in self.buffer]
