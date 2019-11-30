@@ -7,6 +7,7 @@
 #include <boost/algorithm/string.hpp>
 #include <curl/curl.h>
 #include <iostream>
+#include <fstream>
 #include <sstream>
 
 RLNaivePrefetcher::RLNaivePrefetcher(const RLNaivePrefetcherParams *p) 
@@ -40,9 +41,16 @@ RLNaivePrefetcher::calculatePrefetch(const PrefetchInfo &pfi,
     addrStr << pfi.getAddr();
     std::ostringstream pcStr;
     pcStr << pfi.getPC();
+    
+    // print to file 
+    // ios::out specifies output file; ios::app specifies append
+    // std::ofstream output_file;
+    // output_file.open ("/gem5/address_pc_list.txt", std::ios::out | std::ios::app); 
+    // output_file << addrStr.str() << "," << pcStr.str() << "\n";
+    // output_file.close();
 
 
-     /* In windows, this will init the winsock stuff */
+    /* In windows, this will init the winsock stuff */
     curl_global_init(CURL_GLOBAL_ALL);
 
     /* get a curl handle */
