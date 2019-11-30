@@ -2,6 +2,7 @@ import random
 import sys
 
 import numpy as np
+from scipy.sparse import lil_matrix
 from scipy.stats import bernoulli
 
 
@@ -18,7 +19,8 @@ class QLearningPrefetcher:
         self.state_dict = {state: i for i, state in enumerate(state_vocab)}
         self.action_dict = {action: i for i, action in enumerate(action_vocab)}
         self.epsilon = epsilon
-        self.expected_rewards = np.zeros((len(self.state_vocab), len(self.action_vocab)))
+        self.expected_rewards = lil_matrix((len(self.state_vocab), len(self.action_vocab)), dtype=np.float16)
+        # self.expected_rewards = np.zeros((len(self.state_vocab), len(self.action_vocab)))
         # store history of actions/addresses chosen and the state and timestep in which they were chosen
         self.choice_history_buffer = PrefetchBuffer(use_window)
         self.use_window = use_window
@@ -30,7 +32,7 @@ class QLearningPrefetcher:
         self.update_reward_estimates(curr_state[0])
 
         state_idx = self.state_dict[curr_state]
-        action_rewards = self.expected_rewards[state_idx]
+        action_rewards = self.expected_rewards[state_idx].toarray()[0]
         explore = bernoulli.rvs(self.epsilon)
         valid_action_ids = self._get_valid_action_ids(action_rewards, curr_state)
         if explore:
@@ -47,7 +49,7 @@ class QLearningPrefetcher:
         return address
 
     def _get_valid_action_ids(self, action_rewards, curr_state):
-        return [i for i in range(len(action_rewards)) if self._is_valid_action(i, curr_state)]
+        return [i for i in range(action_rewards.shape[0]) if self._is_valid_action(i, curr_state)]
 
     def _get_address(self, action_rewards, valid_action_ids):
         max_val = np.NINF
@@ -78,9 +80,9 @@ class QLearningPrefetcher:
         next_state_idx = self.state_dict[next_state]
         next_action_idx = self.action_dict[next_action]
 
-        old_reward_est = self.expected_rewards[state_idx][action_idx]
-        learned_value = reward + self.discount * self.expected_rewards[next_state_idx][next_action_idx]
-        self.expected_rewards[state_idx][action_idx] = \
+        old_reward_est = self.expected_rewards[state_idx, action_idx]
+        learned_value = reward + self.discount * self.expected_rewards[next_state_idx, next_action_idx]
+        self.expected_rewards[state_idx, action_idx] = \
             (1 - self.learning_rate) * old_reward_est + self.learning_rate * learned_value
 
     def update_reward_estimates(self, curr_address):
