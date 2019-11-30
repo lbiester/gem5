@@ -66,7 +66,7 @@ RLNaivePrefetcher::calculatePrefetch(const PrefetchInfo &pfi,
 
         std::string strData;
         strData = "address=" + addrStr.str();
-	strData += "&pc=" + pcStr.str();
+        strData += "&pc=" + pcStr.str();
         /* Now specify the POST data */
         curl_easy_setopt(curl, CURLOPT_POSTFIELDS, strData.c_str());
 
@@ -103,4 +103,5 @@ RLNaivePrefetcherParams::create()
 {
 	return new RLNaivePrefetcher(this);
 }
+
 
