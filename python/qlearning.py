@@ -35,11 +35,14 @@ class QLearningPrefetcher:
         valid_action_ids = self._get_valid_action_ids(action_rewards, curr_state)
         if explore:
             action = random.choice(valid_action_ids)
-            address = self.action_vocab[action]
+            address_diff = self.action_vocab[action]
         else:
-            address = self._get_address(action_rewards, valid_action_ids)
+            address_diff = self._get_address(action_rewards, valid_action_ids)
+        address = curr_state[0] + address_diff
+        # TODO: it seems like we should also check that the address when combined with the diff doesn't go off the edge
+        # of the address space
         assert(address not in self.choice_history_buffer and address != curr_state[0])
-        self.choice_history_buffer.add_item(address, curr_state)
+        self.choice_history_buffer.add_item(address_diff, address, curr_state)
 
         return address
 
@@ -62,10 +65,11 @@ class QLearningPrefetcher:
         return random.choice(max_addresses)
 
     def _is_valid_action(self, action_index, curr_state):
-        address = self.action_vocab[action_index]
+        address_diff = self.action_vocab[action_index]
+        address = curr_state[0] + address_diff
         # want to make sure not to select the same address for pre-fetching twice before it is used
         # also want to make sure we are not pre-fetching the current address (it will be cached anyway)
-        return address not in self.choice_history_buffer and address != curr_state[0]
+        return address not in self.choice_history_buffer and address_diff != 0
 
     def update_estimate(self, state, action, next_state, next_action, reward):
         state_idx = self.state_dict[state]
@@ -85,7 +89,7 @@ class QLearningPrefetcher:
         if stale_item is not None:
             if stale_item.needs_reward:
                 next_item = self.choice_history_buffer.get_next_pbi(stale_item)
-                self.update_estimate(stale_item.state, stale_item.address, next_item.state, next_item.address, -1)
+                self.update_estimate(stale_item.state, stale_item.action, next_item.state, next_item.action, -1)
 
 
         # perform positive reward when correct item is prefetched
@@ -94,8 +98,8 @@ class QLearningPrefetcher:
             delay = self.choice_history_buffer.step - causal_prefetch_item.step
             reward = (self.use_window + 1 - delay) / self.use_window
             next_item = self.choice_history_buffer.get_next_pbi(causal_prefetch_item)
-            self.update_estimate(causal_prefetch_item.state, causal_prefetch_item.address, next_item.state,
-                                 next_item.address, reward)
+            self.update_estimate(causal_prefetch_item.state, causal_prefetch_item.action, next_item.state,
+                                 next_item.action, reward)
             causal_prefetch_item.reward()
 
         self.choice_history_buffer.remove_stale_item()
@@ -107,8 +111,8 @@ class PrefetchBuffer:
         self.use_window = use_window
         self.step = 0
 
-    def add_item(self, address, state):
-        self.buffer.append(PrefetchBufferItem(address, state, self.step))
+    def add_item(self, action, address, state):
+        self.buffer.append(PrefetchBufferItem(action, address, state, self.step))
         self.step += 1
 
     def remove_stale_item(self):
@@ -135,7 +139,8 @@ class PrefetchBuffer:
 
 
 class PrefetchBufferItem:
-    def __init__(self, address, state, step):
+    def __init__(self, action, address, state, step):
+        self.action = action
         self.address = address
         self.state = state
         self.step = step
