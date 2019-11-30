@@ -30,13 +30,6 @@ SimpleOpts.set_usage("usage: %prog [--maxinsts number] [--rl_prefetcher string] 
 # Finalize the arguments and grab the opts so we can pass it on to our objects
 (opts, args) = SimpleOpts.parse_args()
 
-# Clear python server and set proper RL prefetcher to be used
-# to make this work run apt-get install python-requests
-if opts.rl_prefetcher is not None and opts.rl_prefetcher not in ["table_bandits", "table_q"]:
-    raise Exception("Unsupported RL prefetcher")
-else:
-    requests.post("http://localhost:8080", data={"rl_prefetcher": opts.rl_prefetcher})
-
 # Check if there was a binary passed in via the command line and error if
 # there are too many arguments
 if len(args) == 1:
@@ -44,6 +37,14 @@ if len(args) == 1:
 else:
     SimpleOpts.print_help()
     m5.fatal("Expected a spec program to execute as positional argument")
+
+# Clear python server and set proper RL prefetcher to be used
+# to make this work run apt-get install python-requests
+if opts.rl_prefetcher is not None and opts.rl_prefetcher not in ["table_bandits", "table_q"]:
+    raise Exception("Unsupported RL prefetcher")
+else:
+    requests.post("http://localhost:8080", data={"rl_prefetcher": opts.rl_prefetcher, "spec_program": spec_program})
+
 
 # TODO: add more than just the first input file?
 if spec_program == "bzip2" or spec_program == "401":
@@ -219,5 +220,6 @@ m5.instantiate()
 print("Beginning simulation!")
 exit_event = m5.simulate()
 print('Exiting @ tick %i because %s', m5.curTick(), exit_event.getCause())
+
 
 

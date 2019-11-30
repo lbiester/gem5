@@ -28,8 +28,9 @@ class TorchHandler(http.server.BaseHTTPRequestHandler):
             # special case: the config file will initially call this with
             # rl_prefetcher to reset the server state between runs and initialize the correct prefetcher to be used
             print("Initializing prefetcher")
+            spec_program = field_dict["spec_program"][0]
 
-            state_vocab, action_vocab = util.load_vocab()
+            state_vocab, action_vocab = util.load_vocab(spec_program)
             if field_dict["rl_prefetcher"][0] == "table_bandits":
                 prefetcher = ContextBandit(state_vocab, action_vocab)
             elif field_dict["rl_prefetcher"][0] == "table_q":
@@ -56,4 +57,5 @@ Handler = TorchHandler
 with socketserver.TCPServer(("", PORT), Handler) as httpd:
     print("serving at port", PORT)
     httpd.serve_forever()
+
 
