@@ -29,11 +29,11 @@ class TorchHandler(http.server.BaseHTTPRequestHandler):
             # rl_prefetcher to reset the server state between runs and initialize the correct prefetcher to be used
             print("Initializing prefetcher")
 
-            state_vocab, pc_vocab = util.load_vocab()
+            state_vocab, action_vocab = util.load_vocab()
             if field_dict["rl_prefetcher"][0] == "table_bandits":
-                prefetcher = ContextBandit(state_vocab, pc_vocab)
+                prefetcher = ContextBandit(state_vocab, action_vocab)
             elif field_dict["rl_prefetcher"][0] == "table_q":
-                prefetcher = QLearningPrefetcher(state_vocab, pc_vocab)
+                prefetcher = QLearningPrefetcher(state_vocab, action_vocab)
             else:
                 raise Exception("Unsupported prefetcher")
             print("Done initializing prefetcher")
