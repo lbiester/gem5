@@ -5,10 +5,6 @@ import requests
 # import all of the SimObjects
 from m5.objects import *
 
-# Clear python server
-# to make this work run apt-get install python-requests
-requests.post("http://localhost:8080", data={"reset_state": "true"})
-
 # Add the common scripts to our path
 m5.util.addToPath('../../')
 
@@ -26,11 +22,20 @@ default_max_insts = 100000000 # 100 million
 # Set the usage message to display
 SimpleOpts.add_option('--maxinsts',
         help="Max instructions to run. Default: %s" % default_max_insts)
+SimpleOpts.add_option("--rl_prefetcher",
+                      help="Which RL prefetcher to use")
 
-SimpleOpts.set_usage("usage: %prog [--maxinsts number] spec_program")
+SimpleOpts.set_usage("usage: %prog [--maxinsts number] [--rl_prefetcher string] spec_program")
 
 # Finalize the arguments and grab the opts so we can pass it on to our objects
 (opts, args) = SimpleOpts.parse_args()
+
+# Clear python server and set proper RL prefetcher to be used
+# to make this work run apt-get install python-requests
+if opts.rl_prefetcher is not None and opts.rl_prefetcher not in ["table_bandits", "table_q"]:
+    raise Exception("Unsupported RL prefetcher")
+else:
+    requests.post("http://localhost:8080", data={"rl_prefetcher": opts.rl_prefetcher})
 
 # Check if there was a binary passed in via the command line and error if
 # there are too many arguments
@@ -160,8 +165,11 @@ system.cpu.dcache.connectBus(system.l2bus)
 system.l2cache = L2Cache(opts)
 system.l2cache.connectCPUSideBus(system.l2bus)
 
-# Use LSTM Naive Prefetcher 
-system.l2cache.prefetcher = RLNaivePrefetcher()
+# Use RL Naive Prefetcher
+if opts.rl_prefetcher is not None:
+    system.l2cache.prefetcher = RLNaivePrefetcher()
+else:
+    print("Warning: no rl_prefetcher specified, no prefetcher being used!")
 
 # Create a memory bus
 system.membus = SystemXBar()
@@ -211,4 +219,5 @@ m5.instantiate()
 print("Beginning simulation!")
 exit_event = m5.simulate()
 print('Exiting @ tick %i because %s', m5.curTick(), exit_event.getCause())
+
 
