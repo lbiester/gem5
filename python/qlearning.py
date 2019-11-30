@@ -32,26 +32,42 @@ class QLearningPrefetcher:
         state_idx = self.state_dict[curr_state]
         action_rewards = self.expected_rewards[state_idx]
         explore = bernoulli.rvs(self.epsilon)
-        dup_action = True
-        # want to make sure not to select the same address for pre-fetching twice before it is used
-        # also want to make sure we are not pre-fetching the current address (it will be cached anyway)
-        address = None
-        while dup_action:
-            if explore:
-                action = random.choice(np.arange(len(action_rewards)))
-            else:
-                # TODO: it seems like this could end up in an infinite loop if all of the max actions are chosen already
-                action_opts = [i for i, val in enumerate(action_rewards) if val == max(action_rewards)]
-                action = random.choice(action_opts)
+        valid_action_ids = self._get_valid_action_ids(action_rewards, curr_state)
+        if explore:
+            action = random.choice(valid_action_ids)
             address = self.action_vocab[action]
-            if address not in self.choice_history_buffer and address != curr_state[0]:
-                dup_action = False
+        else:
+            address = self._get_address(action_rewards, valid_action_ids)
+        assert(address not in self.choice_history_buffer and address != curr_state[0])
         self.choice_history_buffer.add_item(address, curr_state)
 
         return address
 
+    def _get_valid_action_ids(self, action_rewards, curr_state):
+        return [i for i in range(len(action_rewards)) if self._is_valid_action(i, curr_state)]
+
+    def _get_address(self, action_rewards, valid_action_ids):
+        max_val = np.NINF
+        max_addresses = []
+        for i, reward_val in enumerate(action_rewards):
+            address = self.action_vocab[i]
+            if i in valid_action_ids:
+                if reward_val > max_val:
+                    max_addresses.clear()
+                    max_addresses.append(address)
+                    max_val = reward_val
+                elif reward_val == max_val:
+                    max_addresses.append(address)
+
+        return random.choice(max_addresses)
+
+    def _is_valid_action(self, action_index, curr_state):
+        address = self.action_vocab[action_index]
+        # want to make sure not to select the same address for pre-fetching twice before it is used
+        # also want to make sure we are not pre-fetching the current address (it will be cached anyway)
+        return address not in self.choice_history_buffer and address != curr_state[0]
+
     def update_estimate(self, state, action, next_state, next_action, reward):
-        print(reward)
         state_idx = self.state_dict[state]
         action_idx = self.action_dict[action]
 

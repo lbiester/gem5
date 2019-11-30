@@ -5,8 +5,8 @@ from python.qlearning import QLearningPrefetcher
 
 def main():
     state_vocab = []
-    addresses = list(range(1000))
-    pcs = list(range(0, 10000, 5))
+    addresses = list(range(500))
+    pcs = list(range(0, 500, 5))
     for address in addresses:
         for pc in pcs:
             state_vocab.append((address, pc))
