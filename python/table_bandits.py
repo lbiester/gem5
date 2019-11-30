@@ -7,17 +7,17 @@ from scipy.stats import bernoulli
 # what if something is used twice? Shouldn't this increase reward? for now no extra reward is given
 
 class ContextBandit:
-    def __init__(self, state_vocab, action_vocab, epsilon, use_window=128):
+    def __init__(self, state_vocab, action_vocab, epsilon=0.1, use_window=128):
         # vocabs are list of possible state/action options
         # states are (address, pc) tuples, actions are addresses to prefetch
         self.state_vocab = state_vocab
         self.action_vocab = action_vocab
         self.state_dict = {state: i for i, state in enumerate(state_vocab)}
-        self.action_dict = {address: i for i, action in enumerate(action_vocab)}
+        self.action_dict = {action: i for i, action in enumerate(action_vocab)}
         self.epsilon = epsilon
         self.expected_rewards = np.zeros((len(self.state_vocab), len(self.action_vocab)))
         # count of previous choices is used for updating reward estimates
-        self.choice_counts = np.zeros((len(self.state_vocab), len(self.action_vocab))
+        self.choice_counts = np.zeros((len(self.state_vocab), len(self.action_vocab)))
         # store history of actions/addresses chosen and the state and timestep in which they were chosen
         self.choice_history_buffer = []
 
@@ -68,3 +68,4 @@ class ContextBandit:
             reward = num / use_window
             self.update_estimate(choice_state, choice_address, reward)
             choices.remove(choice)
+
