@@ -1,6 +1,6 @@
 import random
 
-from python.qlearning import QLearningPrefetcher
+from python.table_q_prefetcher import TableQLearningPrefetcher
 
 
 def main():
@@ -14,7 +14,7 @@ def main():
     # this is a silly way to do this but works
     action_vocab = range(-500, 501)
 
-    prefetcher = QLearningPrefetcher(state_vocab, action_vocab)
+    prefetcher = TableQLearningPrefetcher(state_vocab, action_vocab)
     while True:
         curr_state = random.choice(state_vocab)
         prefetcher.select_action(curr_state)
