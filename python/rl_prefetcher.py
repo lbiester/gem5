@@ -25,27 +25,38 @@ class TableRLPrefetcher:
         self.choice_history_buffer = PrefetchBuffer(use_window)
         self.use_window = use_window
         self.reward_type = reward_type
+        self.prev_address = 0
 
-    def select_action(self, curr_state):
-        self.update_reward_estimates(curr_state[0])
+    def select_action(self, curr_address, curr_pc):
+        self.update_reward_estimates(curr_address)
+
+        curr_state = (self.prev_address - curr_address, curr_pc)
+        # don't return anything if diff is not in dict
+        if curr_state not in self.state_dict:
+            self.prev_address = curr_address
+            self.choice_history_buffer.add_null()
+            return None
 
         state_idx = self.state_dict[curr_state]
         action_rewards = self.expected_rewards[state_idx].toarray()[0]
         explore = bernoulli.rvs(self.epsilon)
-        valid_action_ids = self._get_valid_action_ids(action_rewards, curr_state)
+        valid_action_ids = self._get_valid_action_ids(action_rewards, curr_address)
         if explore:
             action = random.choice(valid_action_ids)
             address_diff = self.action_vocab[action]
         else:
             address_diff = self._get_address(action_rewards, valid_action_ids)
-        address = curr_state[0] + address_diff
-        assert(address not in self.choice_history_buffer and address != curr_state[0])
+        address = curr_address + address_diff
+        assert(address not in self.choice_history_buffer and address != curr_address)
         self.choice_history_buffer.add_item(address_diff, address, curr_state)
+
+        # set previous address to calculate next diff
+        self.prev_address = curr_address
 
         return address
 
-    def _get_valid_action_ids(self, action_rewards, curr_state):
-        return [i for i in range(action_rewards.shape[0]) if self._is_valid_action(i, curr_state)]
+    def _get_valid_action_ids(self, action_rewards, curr_address):
+        return [i for i in range(action_rewards.shape[0]) if self._is_valid_action(i, curr_address)]
 
     def _get_address(self, action_rewards, valid_action_ids):
         max_val = np.NINF
@@ -61,9 +72,9 @@ class TableRLPrefetcher:
                 max_addresses.append(address_diff)
         return random.choice(max_addresses)
 
-    def _is_valid_action(self, action_index, curr_state):
+    def _is_valid_action(self, action_index, curr_address):
         address_diff = self.action_vocab[action_index]
-        address = curr_state[0] + address_diff
+        address = curr_address + address_diff
         # want to make sure not to select the same address for pre-fetching twice before it is used
         # also want to make sure we are not pre-fetching the current address (it will be cached anyway)
         # finally, we want to confirm that the diff for our prefetch leads to an address that is a 64-bit integer
