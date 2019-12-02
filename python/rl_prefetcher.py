@@ -38,8 +38,6 @@ class TableRLPrefetcher:
         else:
             address_diff = self._get_address(action_rewards, valid_action_ids)
         address = curr_state[0] + address_diff
-        # TODO: it seems like we should also check that the address when combined with the diff doesn't go off the edge
-        # of the address space
         assert(address not in self.choice_history_buffer and address != curr_state[0])
         self.choice_history_buffer.add_item(address_diff, address, curr_state)
 
@@ -67,7 +65,8 @@ class TableRLPrefetcher:
         address = curr_state[0] + address_diff
         # want to make sure not to select the same address for pre-fetching twice before it is used
         # also want to make sure we are not pre-fetching the current address (it will be cached anyway)
-        return address not in self.choice_history_buffer and address_diff != 0
+        # finally, we want to confirm that the diff for our prefetch leads to an address that is a 64-bit integer
+        return address not in self.choice_history_buffer and address_diff != 0 and address >= 0 and (address < 2 ** 64)
 
     def update_reward_estimates(self, curr_address):
         raise NotImplementedError
