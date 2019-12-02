@@ -1,3 +1,5 @@
+import numpy as np 
+
 def positive_negative_basic_reward_function(causal_prefetch_item):
     """
     Consistent positive reward based on something being used within 128 steps (1, -1) rewards
@@ -18,7 +20,26 @@ def linear_reward_function(choice_history_buffer, causal_prefetch_item, use_wind
 
 
 def curved_reward_function(choice_history_buffer, causal_prefetch_item, use_window):
-    raise NotImplementedError()
+    """
+    Curved reward function, positive for item that was used within 20-50 steps, 
+    up to negative 4 if used outside of that, and -5 if not used
+    """
+
+    if causal_prefetch_item is None:
+        return -5
+
+    # start with a normal distribution
+    x = np.linspace(1,use_window,use_window)
+    y = [1/(np.sqrt(2*np.pi*8**2)) * np.exp(-(i-36)**2/(2*8**2)) for i in x]
+    # shift and scale (rewards <20 and > 50 are negative)
+    y = [(i-0.01)*100 for i in y]
+    # adjust rewards beyond 60 so that they're increasingly negative
+    for i in range(36+8*3,use_window):
+        y[i] = y[i-1]*1.02
+    
+    prefetch_delay = int(choice_history_buffer.step - causal_prefetch_item.step)
+    
+    return y[prefetch_delay]
 
 def retrospective_cache_reward_function(choice_history_buffer, causal_prefetch_item, use_window):
     raise NotImplementedError()
