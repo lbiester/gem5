@@ -9,8 +9,8 @@ from rl_prefetcher import TableRLPrefetcher
 
 
 class BanditsPrefetcher(TableRLPrefetcher):
-    def __init__(self, state_vocab, action_vocab, epsilon=0.1, use_window=128):
-        TableRLPrefetcher.__init__(state_vocab, action_vocab, epsilon, use_window)    
+    def __init__(self, state_vocab, action_vocab, reward_type, epsilon=0.1, use_window=128):
+        TableRLPrefetcher.__init__(state_vocab, action_vocab, reward_type, epsilon, use_window)
 
     def update_estimate(self, state, action, reward):
         state_idx = self.state_dict[state]

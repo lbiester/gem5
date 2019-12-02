@@ -4,6 +4,7 @@ from io import BytesIO
 from urllib.parse import parse_qs
 
 from python import util
+from python.bandits_prefetcher import BanditsPrefetcher
 from python.table_q_prefetcher import TableQLearningPrefetcher
 from python.table_bandits import ContextBandit
 
@@ -29,12 +30,13 @@ class TorchHandler(http.server.BaseHTTPRequestHandler):
             # rl_prefetcher to reset the server state between runs and initialize the correct prefetcher to be used
             print("Initializing prefetcher")
             spec_program = field_dict["spec_program"][0]
+            reward_type = field_dict["reward_type"][0]
 
             state_vocab, action_vocab = util.load_vocab(spec_program)
             if field_dict["rl_prefetcher"][0] == "table_bandits":
-                prefetcher = ContextBandit(state_vocab, action_vocab)
+                prefetcher = BanditsPrefetcher(state_vocab, action_vocab, reward_type)
             elif field_dict["rl_prefetcher"][0] == "table_q":
-                prefetcher = TableQLearningPrefetcher(state_vocab, action_vocab)
+                prefetcher = TableQLearningPrefetcher(state_vocab, action_vocab, reward_type)
             else:
                 raise Exception("Unsupported prefetcher")
             print("Done initializing prefetcher")

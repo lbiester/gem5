@@ -1,9 +1,11 @@
+from python.reward_functions import compute_reward
 from python.rl_prefetcher import TableRLPrefetcher
 
 
 class TableQLearningPrefetcher(TableRLPrefetcher):
-    def __init__(self, state_vocab, action_vocab, epsilon=0.1, use_window=128, learning_rate=0.1, discount=0.9):
-        super().__init__(state_vocab, action_vocab, epsilon=epsilon, use_window=use_window)
+    def __init__(self, state_vocab, action_vocab, reward_type, epsilon=0.1, use_window=128, learning_rate=0.1,
+                 discount=0.9):
+        super().__init__(state_vocab, action_vocab, reward_type, epsilon=epsilon, use_window=use_window)
 
         self.learning_rate = learning_rate
         self.discount = discount
@@ -31,14 +33,14 @@ class TableQLearningPrefetcher(TableRLPrefetcher):
         if stale_item is not None:
             if stale_item.needs_reward:
                 next_item = self.choice_history_buffer.get_next_pbi(stale_item)
-                self.update_estimate(stale_item.state, stale_item.action, next_item.state, -1)
+                reward = compute_reward(self.reward_type, self.choice_history_buffer, None, self.use_window)
+                self.update_estimate(stale_item.state, stale_item.action, next_item.state, reward)
 
 
         # perform positive reward when correct item is prefetched
         causal_prefetch_item = self.choice_history_buffer.get_causal_prefetch_item(curr_address)
         if causal_prefetch_item is not None:
-            delay = self.choice_history_buffer.step - causal_prefetch_item.step
-            reward = (self.use_window - delay) / self.use_window
+            reward = compute_reward(self.reward_type, self.choice_history_buffer, causal_prefetch_item, self.use_window)
             next_item = self.choice_history_buffer.get_next_pbi(causal_prefetch_item)
             self.update_estimate(causal_prefetch_item.state, causal_prefetch_item.action, next_item.state, reward)
             causal_prefetch_item.reward()
