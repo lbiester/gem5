@@ -30,7 +30,7 @@ class TableRLPrefetcher:
     def select_action(self, curr_address, curr_pc):
         self.update_reward_estimates(curr_address)
 
-        curr_state = (self.prev_address - curr_address, curr_pc)
+        curr_state = (curr_address - self.prev_address, curr_pc)
         # don't return anything if diff is not in dict
         if curr_state not in self.state_dict:
             self.prev_address = curr_address
