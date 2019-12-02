@@ -9,6 +9,10 @@ class PrefetchBuffer:
         self.buffer.append(PrefetchBufferItem(action, address, state, self.step))
         self.step += 1
 
+    def add_null(self):
+        self.buffer.append(None)
+        self.step += 1
+
     def remove_stale_item(self):
         if len(self.buffer) > self.use_window:
             self.buffer.pop(0)
@@ -21,15 +25,22 @@ class PrefetchBuffer:
     def get_causal_prefetch_item(self, address):
         # get the prefetch item in which an address was prefetched
         for pbi in self.buffer:
-            if pbi.address == address:
+            if pbi is not None and pbi.address == address:
                 return pbi
         return None
 
     def get_next_pbi(self, pbi):
-        return self.buffer[pbi.step - self.step + 1]
+        base_index = pbi.step - self.step + 1
+        for i in range(base_index, len(self.buffer)):
+            if self.buffer[i] is not None:
+                return self.buffer[i]
+        return None
 
     def __contains__(self, address):
-        return address in [pbi.address for pbi in self.buffer]
+        for pbi in self.buffer:
+            if pbi is not None and pbi.address == address:
+                return True
+        return False
 
 
 class PrefetchBufferItem:
@@ -38,7 +49,7 @@ class PrefetchBufferItem:
         self.address = address
         self.state = state
         self.step = step
-        self.needs_reward = True
+        self.reward = None
 
-    def reward(self):
-        self.needs_reward = False
+    def set_reward(self, reward):
+        self.reward = reward
