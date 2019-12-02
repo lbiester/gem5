@@ -8,16 +8,19 @@ def main():
     state_vocab = []
     addresses = list(range(n_addressses))
     pcs = list(range(0, n_addressses, 5))
-    for address in addresses:
-        for pc in pcs:
-            state_vocab.append((address, pc))
     # this is a silly way to do this but works
     action_vocab = range(-500, 501)
 
-    prefetcher = TableQLearningPrefetcher(state_vocab, action_vocab)
+    for address_diff in action_vocab:
+        for pc in pcs:
+            if random.random() > 0.3:
+                state_vocab.append((address_diff, pc))
+
+    prefetcher = TableQLearningPrefetcher(state_vocab, action_vocab, "linear")
     while True:
-        curr_state = random.choice(state_vocab)
-        prefetcher.select_action(curr_state)
+        address = random.choice(addresses)
+        pc = random.choice(pcs)
+        prefetcher.select_action(address, pc)
 
 
 if __name__ == '__main__':

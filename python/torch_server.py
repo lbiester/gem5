@@ -45,11 +45,12 @@ class TorchHandler(http.server.BaseHTTPRequestHandler):
         address = int(field_dict["address"][0])
         pc = int(field_dict["pc"][0])
 
-        prefetch_address = prefetcher.select_action((address, pc))
+        prefetch_address = prefetcher.select_action(address, pc)
 
-        addresses_test = [str(prefetch_address)]
         response = BytesIO()
-        response.write(bytes(",".join(addresses_test), "utf-8"))
+        if prefetch_address is not None:
+            addresses_test = [str(prefetch_address)]
+            response.write(bytes(",".join(addresses_test), "utf-8"))
         self.wfile.write(response.getvalue())
 
 
