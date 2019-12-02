@@ -8,7 +8,7 @@ from prefetch_buffer import PrefetchBuffer
 
 
 class TableRLPrefetcher:
-    def __init__(self, state_vocab, action_vocab, epsilon=0.1, use_window=128):
+    def __init__(self, state_vocab, action_vocab, reward_type, epsilon=0.1, use_window=128):
         if sys.version_info[0] != 3:
             raise Exception("RL Prefetcher must be used with python 3!")
 
@@ -24,6 +24,7 @@ class TableRLPrefetcher:
         # store history of actions/addresses chosen and the state and timestep in which they were chosen
         self.choice_history_buffer = PrefetchBuffer(use_window)
         self.use_window = use_window
+        self.reward_type = reward_type
 
     def select_action(self, curr_state):
         self.update_reward_estimates(curr_state[0])
