@@ -26,7 +26,11 @@ class PrefetchBuffer:
         return None
 
     def get_next_pbi(self, pbi):
-        return self.buffer[pbi.step - self.step + 1]
+        start_idx = pbi.step - self.step + 1
+        for i in range(start_idx, len(self.buffer)): 
+            if self.buffer[i].action is not None:
+                return self.buffer[i]
+        return None
 
     def __contains__(self, address):
         return address in [pbi.address for pbi in self.buffer]
