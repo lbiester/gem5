@@ -65,7 +65,7 @@ class RNN(nn.Module):
 
 
 class DQNPrefetcher:
-    def __init__(self, pcs, address_diffs, use_window=128, batch_size=128, gamma=0.999, eps_start=0.9, 
+    def __init__(self, pcs, address_diffs, use_window=128, batch_size=128, gamma=0.99, eps_start=0.9, 
                  eps_end=0.05, eps_decay=200, target_update=1000, net_type='FNN', hidden_size=512):
         if sys.version_info[0] != 3:
             raise Exception("RL Prefetcher must be used with python 3!")
@@ -99,6 +99,7 @@ class DQNPrefetcher:
         self.optimizer = optim.RMSprop(policy_net.parameters())
         self.memory = ReplayMemory(10000)
         self.steps_done = 0
+        self.prev_address = None
 
     def train_step(self, curr_address):
         # assign rewards to "stale" items that haven't been given rewards yet and add to replay memory
@@ -106,17 +107,17 @@ class DQNPrefetcher:
         if stale_item is not None:
             if stale_item.reward is None:
                 stale_item.reward = -1
-                next_item = self.choice_history_buffer.get_next_pbi(stale_item)
-                self.memory.push(stale_item.state, stale_item.action, next_item.state, stale_item.reward)
+            next_item = self.choice_history_buffer.get_next_pbi(stale_item)
+            if next_item is not None:
+            self.memory.push(self._state2tensor(stale_item.state), torch.tensor([self.diff2int[stale_item.action]], device=device), 
+                             self._state2tensor(next_item.state), torch.tensor([stale_item.reward], device=device))
         
         # assign rewards to correct preftech choice and add to replay memory
         causal_prefetch_item = self.choice_history_buffer.get_causal_prefetch_item(curr_address)
         if causal_prefetch_item is not None:
             delay = self.choice_history_buffer.step - causal_prefetch_item.step
             reward = (self.use_window - delay) / self.use_window
-            next_item = self.choice_history_buffer.get_next_pbi(causal_preftech_item)
             casual_prefetch_item.reward = reward
-            self.memory.push(causal_prefetch_item.state, causal_prefetch_item.action, next_item.state, causal_prefetch_item.reward)
 
         self.choice_history_buffer.remove_stale_item()
 
@@ -125,9 +126,25 @@ class DQNPrefetcher:
         if self.steps_done % self.target_update == 0:
             target_net.load_state_dict(policy_next.state_dict())
 
+    def _state2tensor(self, state):
+        delta, pc = state
+        ad_idx = self.diff2int[delta]
+        pc_idx = self.pc2int[pc]
+        state_tensor = torch.cat((F.one_hot(ad_idx, len(self.address_diffs)), F.one_hot(pc_idx, self.pcs)), 1)
+        return torch.tensor(stat_tensor, device=device)
     
     def select_action(self, curr_state):
-        self.train_step(curr_state[0])
+        curr_address, curr_pc = curr_state
+        self.train_step(curr_address)
+        curr_delta = 0
+        if self.prev_address:
+            curr_delta = curr_address - self.prev_address
+        delta_state = (curr_delta, curr_pc)
+        self.prev_address = curr_address
+        # if current state isn't in vocab, don't select action --> just continue
+        if curr_delta not in self.address_diffs or curr_pc not in self.pcs:
+            self.choice_history_buffer.add_item(None, None, None)
+            return 
         eps = self.eps_end + (self.eps_start - self.eps_end) * math.exp(-1 * self.steps_done / self.eps_decay)
         self.steps_done += 1
         explore = bernoulli.rvs(eps)
@@ -136,18 +153,16 @@ class DQNPrefetcher:
             action_id = random.choice(valid_action_ids)
         else:
             # transform curr_state into tensor
-            ad_idx = self.diff2int[curr_state[0]]
-            pc_idx = self.pc2int[curr_state[1]]
-            state_tensor = torch.cat((F.one_hot(ad_idx, len(self.address_diffs)), F.one_hot(pc_idx, self.pcs)), 1)
+            self._state2tensor((curr_delta, curr_pc))
             # restrict to just valid actions
             # get max action out of all valid actions
             with torch.no_grad():
                 action_id = self.policy_net(state_tensor)[valid_action_ids].max(1)[1].view(1,1)
         
         address_diff = self.address_diffs[action_id]
-        address = curr_state[0] + address_diff
+        prefetch_address = curr_address + address_diff
         
-        self.choice_history_buffer.add_item(address_diff, address, curr_state)
+        self.choice_history_buffer.add_item(address_diff, prefetch_address, delta_state)
 
         return address
 
