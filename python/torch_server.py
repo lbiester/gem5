@@ -7,6 +7,7 @@ from python import util
 from python.bandits_prefetcher import BanditsPrefetcher
 from python.table_q_prefetcher import TableQLearningPrefetcher
 from python.table_bandits import ContextBandit
+from dqn_prefectcher import DQNPrefetcher
 
 prefetcher = None
 
@@ -37,6 +38,9 @@ class TorchHandler(http.server.BaseHTTPRequestHandler):
                 prefetcher = BanditsPrefetcher(state_vocab, action_vocab, reward_type)
             elif field_dict["rl_prefetcher"][0] == "table_q":
                 prefetcher = TableQLearningPrefetcher(state_vocab, action_vocab, reward_type)
+            elif field_dict["rl_prefetcher"][0] == "DQN":
+                pcs = [x[1] for x in state_vocab]
+                prefetcher = DQNPrefetcher(pcs, action_vocab)
             else:
                 raise Exception("Unsupported prefetcher")
             print("Done initializing prefetcher")
