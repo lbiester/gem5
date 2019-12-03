@@ -7,7 +7,7 @@ from python import util
 from python.bandits_prefetcher import BanditsPrefetcher
 from python.table_q_prefetcher import TableQLearningPrefetcher
 from python.table_bandits import ContextBandit
-from python.dqn_prefetcher import DQNPrefetcher
+from python.DQN_prefetcher import DQNPrefetcher
 
 prefetcher = None
 
