@@ -15,6 +15,7 @@ class ContextBandit:
         self.state_dict = {state: i for i, state in enumerate(state_vocab)}
         self.action_dict = {action: i for i, action in enumerate(action_vocab)}
         self.epsilon = epsilon
+        self.use_window = use_window
         self.expected_rewards = np.zeros((len(self.state_vocab), len(self.action_vocab)))
         # count of previous choices is used for updating reward estimates
         self.choice_counts = np.zeros((len(self.state_vocab), len(self.action_vocab)))
@@ -43,7 +44,7 @@ class ContextBandit:
 
     def update_estimate(self, state, action, reward):
         state_idx = self.state_dict[state]
-        action_idx = self.action_idx[action]
+        action_idx = self.action_dict[action]
         old_reward_est = self.expected_rewards[state_idx][action_idx]
         choice_count = self.choice_counts[state_idx][action_idx]
         self.expected_rewards[state_idx][action_idx] = old_reward_est + (1 / float(choice_count)) * (reward - old_reward_est)
@@ -64,8 +65,8 @@ class ContextBandit:
             choice_address, choice_state, choice_step = choice
             delay = curr_step - choice_step
             # calculate numerator for reward fraction --> bigger delay, smaller reward
-            num = use_window + 1 - delay
-            reward = num / use_window
+            num = self.use_window + 1 - delay
+            reward = num / self.use_window
             self.update_estimate(choice_state, choice_address, reward)
             choices.remove(choice)
 
