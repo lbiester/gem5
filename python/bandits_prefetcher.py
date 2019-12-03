@@ -12,13 +12,15 @@ from python.reward_functions import compute_reward
 class BanditsPrefetcher(TableRLPrefetcher):
     def __init__(self, state_vocab, action_vocab, reward_type, epsilon=0.1, use_window=128):
         super().__init__(state_vocab, action_vocab, reward_type, epsilon, use_window)
+        self.choice_counts = np.zeros((len(state_vocab),len(action_vocab)))
 
     def update_estimate(self, state, action, reward):
         state_idx = self.state_dict[state]
         action_idx = self.action_dict[action]
-        old_reward_est = self.expected_rewards[state_idx][action_idx]
+        old_reward_est = self.expected_rewards[state_idx].toarray()[0][action_idx]
+        self.choice_counts[state_idx][action_idx] += 1
         choice_count = self.choice_counts[state_idx][action_idx]
-        self.expected_rewards[state_idx][action_idx] = old_reward_est + (1 / float(choice_count)) * (reward - old_reward_est)
+        self.expected_rewards[state_idx, action_idx] = old_reward_est + (1 / float(choice_count)) * (reward - old_reward_est)
 
     def update_reward_estimates(self, curr_address):
         # compute rewards for "stale" item (item outside of prefetch buffer window)
