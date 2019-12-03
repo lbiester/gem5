@@ -1,17 +1,16 @@
-import pickle
+import pandas as pd 
 
-import numpy as np
+def load_vocab(benchmark):
 
-def load_vocab(address_file="vocab/sjeng_address.pkl", pc_file="vocab/sjeng_pc.pkl"):
-    # TODO: consider loading other files?
-    addresses, address_diffs = _read_address_file(address_file)
-    pcs, pc_diffs = _read_address_file(pc_file)
-    # states are address, pc tuples
-    return list(set(zip(addresses, pcs))), list(set(address_diffs))
+    delta_file = "vocab/{}.csv".format(benchmark)
+    delta_df = pd.read_csv(delta_file)
+    delta_df['pcs'] = delta_df['pc_deltas'].cumsum().astype('uint64')
 
+    # only keep rows where address_diff is common (>=5 occurences)
+    delta_df = delta_df.groupby('address_deltas').filter(lambda x : len(x)>=5)
 
-def _read_address_file(filename):
-    with open(filename, "rb") as f:
-        arr = pickle.load(f)
-    del arr[1]
-    return np.cumsum(arr)[1:], arr[1:]
+    # states are address diffs, pc tuples
+    # actions are address diffs
+    address_diffs = delta_df['address_deltas'].to_list()
+    pcs = delta_df['pcs'].to_list()
+    return list(set(zip(address_diffs, pcs))), list(set(address_diffs))

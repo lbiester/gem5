@@ -24,18 +24,13 @@ SimpleOpts.add_option('--maxinsts',
         help="Max instructions to run. Default: %s" % default_max_insts)
 SimpleOpts.add_option("--rl_prefetcher",
                       help="Which RL prefetcher to use")
+SimpleOpts.add_option('--reward_type',
+                      help="Type of rewards to use with the RL prefetcher")
 
-SimpleOpts.set_usage("usage: %prog [--maxinsts number] [--rl_prefetcher string] spec_program")
+SimpleOpts.set_usage("usage: %prog [--maxinsts number] [--rl_prefetcher string] [--reward_type string] spec_program")
 
 # Finalize the arguments and grab the opts so we can pass it on to our objects
 (opts, args) = SimpleOpts.parse_args()
-
-# Clear python server and set proper RL prefetcher to be used
-# to make this work run apt-get install python-requests
-if opts.rl_prefetcher is not None and opts.rl_prefetcher not in ["table_bandits", "table_q"]:
-    raise Exception("Unsupported RL prefetcher")
-else:
-    requests.post("http://localhost:8080", data={"rl_prefetcher": opts.rl_prefetcher})
 
 # Check if there was a binary passed in via the command line and error if
 # there are too many arguments
@@ -44,6 +39,19 @@ if len(args) == 1:
 else:
     SimpleOpts.print_help()
     m5.fatal("Expected a spec program to execute as positional argument")
+
+# Clear python server and set proper RL prefetcher to be used
+# to make this work run apt-get install python-requests
+if opts.rl_prefetcher is not None and opts.rl_prefetcher not in ["table_bandits", "table_q", "DQN"]:
+    raise Exception("Unsupported RL prefetcher")
+elif opts.reward_type is None and opts.rl_prefetcher is not None:
+    raise Exception("Must specify a reward type when using a RL prefetcher")
+elif opts.reward_type not in [None, "positive_negative_basic", "linear", "curved", "retrospective_cache"]:
+    raise Exception("Unsupported reward type")
+else:
+    requests.post("http://localhost:8080", data={"rl_prefetcher": opts.rl_prefetcher, "spec_program": spec_program,
+                                                 "reward_type": opts.reward_type})
+
 
 # TODO: add more than just the first input file?
 if spec_program == "bzip2" or spec_program == "401":
@@ -219,5 +227,6 @@ m5.instantiate()
 print("Beginning simulation!")
 exit_event = m5.simulate()
 print('Exiting @ tick %i because %s', m5.curTick(), exit_event.getCause())
+
 
 
