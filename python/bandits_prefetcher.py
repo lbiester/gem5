@@ -33,10 +33,6 @@ class BanditsPrefetcher(TableRLPrefetcher):
         causal_prefetch_item = self.choice_history_buffer.get_causal_prefetch_item(curr_address)
         if causal_prefetch_item is not None:
             reward = compute_reward(self.reward_type, self.choice_history_buffer, causal_prefetch_item, self.use_window)
-
-            #delay = self.choice_history_buffer.step - causal_prefetch_item.step
-            #reward = (self.use_window - delay) / self.use_window
-            self.update_estimate(causal_prefetch_item.state, causal_prefetch_item.action, reward)
             causal_prefetch_item.set_reward(reward)
 
         self.choice_history_buffer.remove_stale_item()
