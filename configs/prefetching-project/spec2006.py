@@ -42,7 +42,7 @@ else:
 
 # Clear python server and set proper RL prefetcher to be used
 # to make this work run apt-get install python-requests
-if opts.rl_prefetcher is not None and opts.rl_prefetcher not in ["table_bandits", "table_q"]:
+if opts.rl_prefetcher is not None and opts.rl_prefetcher not in ["table_bandits", "table_q", "DQN"]:
     raise Exception("Unsupported RL prefetcher")
 elif opts.reward_type is None and opts.rl_prefetcher is not None:
     raise Exception("Must specify a reward type when using a RL prefetcher")

@@ -81,10 +81,12 @@ RLNaivePrefetcher::calculatePrefetch(const PrefetchInfo &pfi,
         // we need to split the string and convert the addresses to the Addr type
         std::vector<std::string> splitAddrStr;
         boost::split(splitAddrStr, readBuffer, boost::is_any_of(","));
-        for (int i = 0; i < splitAddrStr.size(); i++) {
-            Addr returnedAddress = std::stoul(splitAddrStr[i]);
-            addresses.push_back(AddrPriority(returnedAddress, 0));
-        }
+	if (readBuffer.length() > 0) {
+	    for (int i = 0; i < splitAddrStr.size(); i++) {
+	        Addr returnedAddress = std::stoul(splitAddrStr[i]);
+	        addresses.push_back(AddrPriority(returnedAddress, 0));
+	    }
+	}
 
         // confirm that it worked (we can get rid of this)
         // std::cout << "* size of the vector: " << splitAddrStr.size() << "\n";
