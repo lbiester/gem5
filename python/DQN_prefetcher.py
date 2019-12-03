@@ -13,6 +13,7 @@ from pb_DQN import PrefetchBuffer
 
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print("device is {}".format(device))
 
 Transition = namedtuple('Transition', ('state', 'action', 'next_state', 'reward'))
 
@@ -103,13 +104,13 @@ class DQNPrefetcher:
     def train_step(self, curr_address):
         # assign rewards to "stale" items that haven't been given rewards yet and add to replay memory
         stale_item = self.choice_history_buffer.get_stale_item()
-        if stale_item is not None:
+        if stale_item is not None and stale_item.state is not None:
             if stale_item.reward is None:
                 stale_item.reward = -1
             next_item = self.choice_history_buffer.get_next_pbi(stale_item)
             if next_item is not None:
                 self.memory.push(self._state2tensor(stale_item.state), torch.tensor([self.diff2int[stale_item.action]], device=device), 
-                                 self._state2tensor(next_item.state), torch.tensor([stale_item.reward], device=device))
+                                 self._state2tensor(next_item.state), torch.tensor([stale_item.reward], dtype=torch.float, device=device))
         
         # assign rewards to correct preftech choice and add to replay memory
         causal_prefetch_item = self.choice_history_buffer.get_causal_prefetch_item(curr_address)
@@ -153,7 +154,7 @@ class DQNPrefetcher:
             action_id = random.choice(valid_action_ids)
         else:
             # transform curr_state into tensor
-            state_tensor = self._state2tensor((curr_delta, curr_pc))
+            state_tensor = self._state2tensor(delta_state)
             # restrict to just valid actions
             # get max action out of all valid actions
             with torch.no_grad():
