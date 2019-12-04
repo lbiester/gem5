@@ -1,4 +1,5 @@
 # import the m5 (gem5) library created when gem5 is built
+import datetime
 import m5
 import os
 import requests
@@ -224,9 +225,15 @@ root = Root(full_system = False, system = system)
 # instantiate all of the objects we've created above
 m5.instantiate()
 
-print("Beginning simulation!")
-exit_event = m5.simulate()
-print('Exiting @ tick %i because %s', m5.curTick(), exit_event.getCause())
-
-
-
+dump_n_instructions = 100000
+i = 0
+while True:
+    i += dump_n_instructions
+    system.cpu.scheduleInstStop(0, dump_n_instructions, "dump statistics")
+    event = m5.simulate()
+    if event.getCause() == "dump statistics":
+        m5.stats.dump()
+        print(str(datetime.datetime.now()), "Instruction Count: {}, Dumping stats".format(i))
+    else:
+        print('Exiting @ tick %i because %s', m5.curTick(), event.getCause())
+        break
