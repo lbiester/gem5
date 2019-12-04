@@ -10,7 +10,7 @@ from scipy.stats import bernoulli
 from collections import namedtuple
 from IPython import embed
 from pb_DQN import PrefetchBuffer
-
+from python.reward_functions import compute_reward
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print("device is {}".format(device))
@@ -66,7 +66,7 @@ class RNN(nn.Module):
 
 
 class DQNPrefetcher:
-    def __init__(self, pcs, address_diffs, use_window=128, batch_size=128, gamma=0.99, eps_start=0.9, 
+    def __init__(self, pcs, address_diffs, reward_type, use_window=128, batch_size=128, gamma=0.99, eps_start=0.9, 
                  eps_end=0.05, eps_decay=200, target_update=1000, net_type='FNN', hidden_size=512):
         if sys.version_info[0] != 3:
             raise Exception("RL Prefetcher must be used with python 3!")
@@ -100,6 +100,7 @@ class DQNPrefetcher:
         self.memory = ReplayMemory(10000)
         self.steps_done = 0
         self.prev_address = 0
+        self.reward_type = reward_type
 
     def train_step(self, curr_address):
         # assign rewards to "stale" items that haven't been given rewards yet and add to replay memory
@@ -116,7 +117,8 @@ class DQNPrefetcher:
         causal_prefetch_item = self.choice_history_buffer.get_causal_prefetch_item(curr_address)
         if causal_prefetch_item is not None:
             delay = self.choice_history_buffer.step - causal_prefetch_item.step
-            reward = (self.use_window - delay) / self.use_window
+            reward = compute_reward(self.reward_type, self.choice_history_buffer, causal_prefetch_item, self.use_window)
+            #reward = (self.use_window - delay) / self.use_window
             causal_prefetch_item.reward = reward
 
         self.choice_history_buffer.remove_stale_item()
