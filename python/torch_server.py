@@ -40,7 +40,7 @@ class TorchHandler(http.server.BaseHTTPRequestHandler):
                 prefetcher = TableQLearningPrefetcher(state_vocab, action_vocab, reward_type)
             elif field_dict["rl_prefetcher"][0] == "DQN":
                 pcs = [x[1] for x in state_vocab]
-                prefetcher = DQNPrefetcher(pcs, action_vocab)
+                prefetcher = DQNPrefetcher(pcs, action_vocab, reward_type)
             else:
                 raise Exception("Unsupported prefetcher")
             print("Done initializing prefetcher")
