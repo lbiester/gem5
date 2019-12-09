@@ -48,7 +48,7 @@ elif opts.reward_type is None and opts.rl_prefetcher is not None:
     raise Exception('Must specify a reward type when using a RL prefetcher')
 elif opts.reward_type not in [None, 'positive_negative_basic', 'linear', 'curved', 'retrospective_cache']:
     raise Exception('Unsupported reward type')
-else:
+elif opts.rl_prefetcher is not None and opts.reward_type is not None:
     requests.post('http://localhost:8080', data={'rl_prefetcher': opts.rl_prefetcher, 'spec_program': spec_program,
                                                  'reward_type': opts.reward_type})
 
