@@ -61,13 +61,13 @@ if spec_program == 'bzip2':
         '401.bzip2/run/run_base_test_docker.0000/input.program'), '5']
 elif spec_program == 'sjeng':
     # NOTE: this is set up to be run within the gem5 directory
-    binary = [os.path.join(cpu_2006_base_dir, '458.sjeng','exe','sjeng_base.docker-nn')]
-    input_file = [os.path.join(cpu_2006_base_dir,'458.sjeng','run','run_base_test_docker-nn.0000','test.txt')]
+    binary = [os.path.join(cpu_2006_base_dir, '458.sjeng','exe','sjeng_base.docker')]
+    input_file = [os.path.join(cpu_2006_base_dir,'458.sjeng','run','run_base_test_docker.0000','test.txt')]
 elif spec_program == 'povray':
     # NOTE: this needs to be run within the spec directory
-    binary = [os.path.join(cpu_2006_base_dir, '453.povray','exe','povray_base.docker-nn')]
-    input_file = [os.path.join(cpu_2006_base_dir,'453.povray','run','run_base_test_docker-nn.0000','SPEC-benchmark-test.pov')]
-    input_file += [os.path.join(cpu_2006_base_dir,'453.povray','run','run_base_test_docker-nn.0000','SPEC-benchmark-test.ini')]
+    binary = [os.path.join(cpu_2006_base_dir, '453.povray','exe','povray_base.docker')]
+    input_file = [os.path.join(cpu_2006_base_dir,'453.povray','run','run_base_test_docker.0000','SPEC-benchmark-test.pov')]
+    input_file += [os.path.join(cpu_2006_base_dir,'453.povray','run','run_base_test_docker.0000','SPEC-benchmark-test.ini')]
 else:
     m5.fatal('Given spec program is not supported')
 
